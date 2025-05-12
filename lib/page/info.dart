@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-// import 'package:commit_me/components/navigation_menu.dart';
+import 'package:commit_me/page/nevigation_menu.dart';
 import 'package:commit_me/design/color_system.dart';
+import 'package:commit_me/page/chatbotPage.dart';
+import 'package:commit_me/page/upload_resume.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+
 
 void main() => runApp(CommitMeApp());
 
@@ -54,20 +58,7 @@ class InfoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Row(
-          children: [
-            Icon(Icons.explore, color: AppColors.mainBlue),
-            SizedBox(width: 8),
-            Text('CommitMe', style: TextStyle(color: Colors.black)),
-            Spacer(),
-            TextButton(onPressed: () {}, child: Text('홈', style: TextStyle(color: Colors.black))),
-            TextButton(onPressed: () {}, child: Text('면접준비', style: TextStyle(color: Colors.black))),
-          ],
-        ),
-      ), //나중에 negivationbar로 대체
+      appBar: NavigationMenu(),
       body: Stack(
         children: [
           // 배경 이미지
@@ -149,7 +140,9 @@ class InfoPage extends StatelessWidget {
                         ),
                         SizedBox(height: 20),
                         ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () {
+                            showUploadDialog(context);
+                          },
                           icon: Icon(Icons.upload_file, size: 28),
                           label: Text('이력서 불러오기'),
                           style: ElevatedButton.styleFrom(
@@ -233,7 +226,12 @@ class InfoPage extends StatelessWidget {
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => ChatbotPage()),
+                              );
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
