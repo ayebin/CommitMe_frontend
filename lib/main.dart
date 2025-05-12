@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:commit_me/page/home.dart';
 import 'package:commit_me/page/info.dart';
+import 'package:commit_me/page/chatbotPage.dart';
 
 void main() {
   runApp(MyApp());
