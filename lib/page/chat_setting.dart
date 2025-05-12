@@ -17,7 +17,7 @@ class _ChatSettingState extends State<ChatSetting> {
     return Container(
       color: AppColors.backBlue,
       child: Padding(
-        padding: const EdgeInsets.only(left: 100, top: 40, bottom: 60, right: 60),
+        padding: const EdgeInsets.only(left: 40, top: 40, bottom: 40, right: 40),
         child: Column(
           children: [
             Expanded(
@@ -38,7 +38,7 @@ class _ChatSettingState extends State<ChatSetting> {
                 child: RoleType(),
               ),
             ),
-            SizedBox(height: 30,),
+            SizedBox(height: 20,),
             Container(
                 height: 210,
                 decoration: BoxDecoration(
@@ -55,7 +55,7 @@ class _ChatSettingState extends State<ChatSetting> {
                 ),
                 child: FeedbackType()
             ),
-            SizedBox(height: 30,),
+            SizedBox(height: 20,),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -79,7 +79,7 @@ class _ChatSettingState extends State<ChatSetting> {
                 ElevatedButton(
                   onPressed: () => {},
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(150,50),
+                    minimumSize: Size(130,60),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                       side: BorderSide(

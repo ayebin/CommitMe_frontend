@@ -39,7 +39,12 @@ class NavigationMenu extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade300, width: 1), // ✅ 하단 회색 줄
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -69,14 +74,14 @@ class NavigationMenu extends StatelessWidget implements PreferredSizeWidget {
                   MaterialPageRoute(builder: (context) => InfoPage()),
                 );
               }),
-
-              SizedBox(width: 40),
+              SizedBox(width: 50),
             ],
           ),
         ],
       ),
     );
   }
+
 
   @override
   Size get preferredSize => Size.fromHeight(70.0);

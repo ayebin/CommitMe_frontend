@@ -17,7 +17,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
       appBar: NavigationMenu(),
       body: Column(
         children: [
-          NavigationDeco(),
+          //NavigationDeco(),
           Expanded(
             child: Row(
               children: [
