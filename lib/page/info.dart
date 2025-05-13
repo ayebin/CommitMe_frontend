@@ -5,25 +5,55 @@ import 'package:commit_me/page/chatbotPage.dart';
 import 'package:commit_me/page/upload_resume.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:commit_me/userProvider.dart';
+import 'package:commit_me/infoProvider.dart';
 
-
-
-void main() => runApp(CommitMeApp());
-
-class CommitMeApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: InfoPage(),
-    );
-  }
-}
-
-class InfoPage extends StatelessWidget {
+class InfoPage extends StatefulWidget {
   const InfoPage({super.key});
 
-  Widget _buildInputField(String label) => TextField(
+  @override
+  State<InfoPage> createState() => _InfoPageState();
+}
+
+class _InfoPageState extends State<InfoPage> {
+  final TextEditingController _positionController = TextEditingController();
+  final TextEditingController _interestController = TextEditingController();
+  final TextEditingController _historyController = TextEditingController();
+  final TextEditingController _languageController = TextEditingController();
+  final TextEditingController _projectController = TextEditingController();
+
+  Future<void> _submitInfo(BuildContext context) async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+
+    final response = await http.post(
+      Uri.parse('http://127.0.0.1:5000/info/add_info'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'user_id': userId,
+        'position': _positionController.text,
+        'interest': _interestController.text,
+        'history': _historyController.text,
+        'language': _languageController.text,
+        'project': _projectController.text,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      final infoId = jsonDecode(response.body)['info_id'];
+      Provider.of<InfoProvider>(context, listen: false).setInfoId(infoId);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ChatbotPage()),
+      );
+    } else {
+      print('info 저장 실패: ${response.body}');
+    }
+  }
+
+  Widget _buildInputField(String label, TextEditingController controller) => TextField(
+    controller: controller,
     decoration: InputDecoration(
       labelText: label,
       labelStyle: TextStyle(color: Colors.grey),
@@ -32,13 +62,14 @@ class InfoPage extends StatelessWidget {
       fillColor: Colors.white,
       border: OutlineInputBorder(),
       focusedBorder: OutlineInputBorder(
-        borderSide: BorderSide(color: Colors.black)
+        borderSide: BorderSide(color: Colors.black),
       ),
       contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
     ),
   );
 
-  Widget _buildMultilineInputField(String label) => TextField(
+  Widget _buildMultilineInputField(String label, TextEditingController controller) => TextField(
+    controller: controller,
     maxLines: 4,
     decoration: InputDecoration(
       labelText: label,
@@ -48,11 +79,12 @@ class InfoPage extends StatelessWidget {
       fillColor: Colors.white,
       border: OutlineInputBorder(),
       focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.black)
+        borderSide: BorderSide(color: Colors.black),
       ),
       contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
     ),
   );
+
 
   @override
   Widget build(BuildContext context) {
@@ -200,9 +232,9 @@ class InfoPage extends StatelessWidget {
                             Expanded(
                               child: Column(
                                 children: [
-                                  _buildInputField('어떤 직무를 희망하시나요?'),
+                                  _buildInputField('어떤 직무를 희망하시나요?', _positionController),
                                   SizedBox(height: 16),
-                                  _buildInputField('어떤 경력이 있으신가요?'),
+                                  _buildInputField('어떤 경력이 있으신가요?', _historyController),
                                 ],
                               ),
                             ),
@@ -210,9 +242,9 @@ class InfoPage extends StatelessWidget {
                             Expanded(
                               child: Column(
                                 children: [
-                                  _buildInputField('현재 관심사가 무엇인가요?'),
+                                  _buildInputField('현재 관심사가 무엇인가요?', _interestController),
                                   SizedBox(height: 16),
-                                  _buildInputField('주 사용 / 가능한 언어는 무엇인가요?'),
+                                  _buildInputField('주 사용 / 가능한 언어는 무엇인가요?', _languageController),
                                 ],
                               ),
                             ),
@@ -220,18 +252,13 @@ class InfoPage extends StatelessWidget {
                         ),
 
                         SizedBox(height: 16),
-                        _buildMultilineInputField('프로젝트 경험이 있다면, 자유롭게 작성해주세요'),
+                        _buildMultilineInputField('프로젝트 경험이 있다면, 자유롭게 작성해주세요', _projectController),
                         SizedBox(height: 20),
 
                         Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => ChatbotPage()),
-                              );
-                            },
+                            onPressed: () => _submitInfo(context),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,

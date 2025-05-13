@@ -1,9 +1,41 @@
-import 'package:commit_me/design/color_system.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:commit_me/design/color_system.dart';
 import 'package:commit_me/page/nevigation_menu.dart';
 import 'package:commit_me/page/info.dart';
+import 'package:provider/provider.dart';
+import 'package:commit_me/userProvider.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    _createUser();  // 여기서 context 사용 가능
+  }
+
+  Future<void> _createUser() async {
+    try {
+      final response = await Uri.parse('http://127.0.0.1:5000/user/add_user'); // 주소는 서버에 맞게 수정
+      final result = await http.post(response);
+
+      if (result.statusCode == 201) {
+        final int userId = jsonDecode(result.body)['user_id'];
+        Provider.of<UserProvider>(context, listen: false).setUserId(userId);
+      } else {
+        print('user 생성 실패: ${result.body}');
+      }
+    } catch (e) {
+      print('에러 발생: $e');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
