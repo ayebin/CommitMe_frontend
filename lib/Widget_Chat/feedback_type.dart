@@ -57,7 +57,7 @@ class _FeedbackTypeState extends State<FeedbackType> {
                   backgroundColor: isSelectedDefault ? AppColors.DarkBlue : Colors.white,
                 ),
                 child: Text(
-                  '균현 잡힌\n답변',
+                  '균현 잡힌\n   답변',
                   style: TextStyle(
                       color: isSelectedDefault ? Colors.white : Colors.black,
                       fontWeight: isSelectedDefault ? FontWeight.bold : FontWeight.w500
