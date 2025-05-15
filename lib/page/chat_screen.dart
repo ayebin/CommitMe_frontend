@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:commit_me/userProvider.dart';
+import 'package:commit_me/infoProvider.dart';
+import 'package:commit_me/sessionProvider.dart';
+import 'package:commit_me/chatwidgetProvider.dart';
 import 'package:commit_me/messageProvider.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -22,15 +26,55 @@ class _ChatScreenState extends State<ChatScreen> {
   void _handleSendMessage(String message) async {
     if (message.isNotEmpty) {
       setState(() {
-        _messages.add({'message': message, 'sender': 'me'});
+        _messages.add({'message': message, 'sender': 'user'}); //
       });
 
-      // 5초 뒤에 자동으로 상대방 메시지를 추가
-      Future.delayed(Duration(seconds: 3), () {
-        _handleTestMessage();
-      });
+      await _sendMessageToBackend(message); //
     }
   }
+
+  Future<void> _sendMessageToBackend(String message) async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    final infoId = Provider.of<InfoProvider>(context, listen: false).infoId;
+    final sessionId = Provider.of<SessionProvider>(context, listen: false).sessionId;
+
+    final chatSettings = Provider.of<ChatWidgetProvider>(context, listen: false);
+    final role = chatSettings.role;
+    final feedbackLength = chatSettings.feedbackLength;
+    final feedbackType = chatSettings.feedbackType;
+
+    final body = {
+      'message': message,
+      'user_id': userId,
+      'info_id': infoId,
+      'session_id': sessionId,
+      'role': role,
+      'feedbackLength': feedbackLength,
+      'feedbackType': feedbackType,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1:5000/chat/chatting"), // ✅ 백엔드 주소
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        final botMessage = res['response'];
+
+        setState(() {
+          _messages.add({'message': botMessage, 'sender': 'system'}); // ✅ sender = 챗봇
+        });
+      } else {
+        print("백엔드 오류: ${response.statusCode} - ${response.body}");
+      }
+    } catch (e) {
+      print("에러 발생: $e");
+    }
+  }
+
 
   void _handleTestMessage() {
     String otherMessage;
@@ -48,7 +92,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
     setState(() {
-      _messages.add({'message': otherMessage, 'sender': 'other'});
+      _messages.add({'message': otherMessage, 'sender': 'system'});
       otherMessageCount++; // 메시지 카운트 증가
     });
   }
@@ -57,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.only(right: 65, bottom: 20),
+        padding: EdgeInsets.only(right: 10, left: 10, bottom: 20),
         color: Colors.white,
         child: Column(
           children: [
@@ -71,10 +115,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
 
                     return Row(
-                      mainAxisAlignment: sender == 'me' ? MainAxisAlignment.end : MainAxisAlignment.start,
+                      mainAxisAlignment: sender == 'user' ? MainAxisAlignment.end : MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (sender == 'other') ...[
+                        if (sender == 'system') ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 30.0),
                             child: Container(
@@ -86,7 +130,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                               ),
                               child: CircleAvatar(
-                                  child: Icon(Icons.token_outlined, color: AppColors.highBlue),
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      'assets/images/chatbot_icon.png',
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                   radius: 20,
                                   backgroundColor: Colors.white
                               ),
@@ -95,14 +146,16 @@ class _ChatScreenState extends State<ChatScreen> {
                           SizedBox(width: 5),
                         ],
                         Column(
-                          crossAxisAlignment: sender == 'me' ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          crossAxisAlignment: sender == 'user' ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                           children: [
                             Container(
-                              width: 500,
+                              constraints: BoxConstraints(
+                                maxWidth: MediaQuery.of(context).size.width * 0.6, // 최대 너비를 화면의 60%로 제한
+                              ),
                               padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                               margin: EdgeInsets.symmetric(horizontal: 10),
                               decoration: BoxDecoration(
-                                color: sender == 'me' ? Color(0xFF689ADB) : Colors.white,
+                                color: sender == 'user' ? Color(0xFF689ADB) : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: Color(0xFF627A98),
@@ -111,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: Text(
                                 message,
                                 style: TextStyle(
-                                  color: sender == 'me' ? Colors.white : Color(0xFF1B2559),
+                                  color: sender == 'user' ? Colors.white : Color(0xFF1B2559),
                                   fontSize: 16,
                                 ),
                                 softWrap: true,
@@ -120,7 +173,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             SizedBox(height: 30,)   //채팅간격
                           ],
                         ),
-                        if (sender == 'me') ...[
+                        if (sender == 'user') ...[
                           SizedBox(width: 23),
                         ],
                       ],
@@ -139,7 +192,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       setState(() {
                         _messages.add({
                           'message': '다음 질문을 받고 싶어요',
-                          'sender': 'me',
+                          'sender': 'user',
                         });
                       });
 
@@ -194,41 +247,64 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 
-
-class ChatInputBar extends StatelessWidget {
+class ChatInputBar extends StatefulWidget {
   final Function(String) onSend;
 
   const ChatInputBar({Key? key, required this.onSend}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController _controller = TextEditingController();
+  _ChatInputBarState createState() => _ChatInputBarState();
+}
 
+class _ChatInputBarState extends State<ChatInputBar> {
+  final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  void _sendMessage() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      widget.onSend(text);
+      _controller.clear();
+      _focusNode.requestFocus();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 30),
       padding: EdgeInsets.only(left: 20, right: 10),
       decoration: BoxDecoration(
-          border: Border.all(color: Color(0xFF6A90B7), width: 1),
-          borderRadius: BorderRadius.circular(40),
-          color: Colors.white.withOpacity(0.5)
+        border: Border.all(color: Color(0xFF6A90B7), width: 1),
+        borderRadius: BorderRadius.circular(40),
+        color: Colors.white.withOpacity(0.5),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _controller,
-              decoration: InputDecoration(hintText: '무엇이든 물어보세요', border: InputBorder.none),
+              focusNode: _focusNode, //
+              onSubmitted: (_) => _sendMessage(),
+              decoration: InputDecoration(
+                hintText: '무엇이든 물어보세요',
+                border: InputBorder.none,
+              ),
             ),
           ),
           IconButton(
-            icon: Icon(Icons.send, color: Color(0xFF6A90B7),),
-            onPressed: () {
-              onSend(_controller.text);
-              _controller.clear();
-            },
+            icon: Icon(Icons.send, color: Color(0xFF6A90B7)),
+            onPressed: _sendMessage,
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 }

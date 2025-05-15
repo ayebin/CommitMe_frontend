@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:commit_me/design/color_system.dart';
 
 class RoleType extends StatefulWidget {
-  const RoleType({super.key});
+  final TextEditingController controller;  // ✅ 외부에서 컨트롤러 주입
+
+  RoleType({Key? key, required this.controller}) : super(key: key);
 
   @override
   State<RoleType> createState() => _RoleTypeState();
@@ -10,12 +12,19 @@ class RoleType extends StatefulWidget {
 
 class _RoleTypeState extends State<RoleType> {
   bool isRoleNone = true; // "선택안함" 초기 선택
-  bool isRole1 = false; // 압박형
+  bool isRole1 = false; // 자기소개서/이력서 중심형
   bool isRole2 = false; // 친절하고 유도적인 서포터 유형
-  bool isRole3 = false; // 사실 확인형
-  bool isRole4 = false; // 반응이 없는 유형
+  bool isRole3 = false; // 압박형
+  bool isRole4 = false; // 사실 확인형
   bool isRole5 = false; // 비즈니스 실무 중심형
-  bool isRole6 = false; // 자기소개서/이력서 중심형
+  bool isRole6 = false; // 반응이 없는 유형
+
+  @override
+  void initState() {
+    super.initState();
+    isRole1 = true;  // ✅ 자기소개서/이력서 중심형 버튼 선택
+    widget.controller.text = '자기소개서/이력서 중심형'; // ✅ 텍스트 필드에 기본 텍스트 설정
+  }
 
   void selectRole(String roleType) {
     setState(() {
@@ -61,29 +70,36 @@ class _RoleTypeState extends State<RoleType> {
         switch (roleType) {
           case "none":
             isRoleNone = true;
+            widget.controller.text = '';
             break;
           case "role1":
             isRole1 = true;
+            widget.controller.text = '자기소개서/이력서 중심형';
             break;
           case "role2":
             isRole2 = true;
+            widget.controller.text = '친절하고 유도적인 서포터형';
             break;
           case "role3":
             isRole3 = true;
+            widget.controller.text = '압박형';
             break;
           case "role4":
             isRole4 = true;
+            widget.controller.text = '사실확인형';
             break;
           case "role5":
             isRole5 = true;
+            widget.controller.text = '비즈니스 실무 중심형';
             break;
           case "role6":
             isRole6 = true;
+            widget.controller.text = '반응이 없는 유도형';
             break;
         }
       } else {
-        // 이미 선택된 걸 다시 누른 경우, 선택안함으로 되돌림
         isRoleNone = true;
+        widget.controller.text = '';
       }
     });
   }
@@ -105,7 +121,7 @@ class _RoleTypeState extends State<RoleType> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               InterviewRoleButton(
-                label: '압박형',
+                label: '자기소개서/이력서 중심형',
                 roleKey: 'role1',
                 isSelected: isRole1,
                 onTap: selectRole,
@@ -117,7 +133,7 @@ class _RoleTypeState extends State<RoleType> {
                 onTap: selectRole,
               ),
               InterviewRoleButton(
-                label: '사실 확인형',
+                label: '압박형',
                 roleKey: 'role3',
                 isSelected: isRole3,
                 onTap: selectRole,
@@ -129,7 +145,7 @@ class _RoleTypeState extends State<RoleType> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               InterviewRoleButton(
-                label: '반응이 없는 유도형',
+                label: '사실확인형',
                 roleKey: 'role4',
                 isSelected: isRole4,
                 onTap: selectRole,
@@ -141,7 +157,7 @@ class _RoleTypeState extends State<RoleType> {
                 onTap: selectRole,
               ),
               InterviewRoleButton(
-                label: '자기소개서/이력서 중심형',
+                label: '반응이 없는 유도형',
                 roleKey: 'role6',
                 isSelected: isRole6,
                 onTap: selectRole,
@@ -158,6 +174,7 @@ class _RoleTypeState extends State<RoleType> {
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
+                  controller: widget.controller,
                   decoration: InputDecoration(
                     hintText: "여기에 입력하세요: \n원하는 유형이 없다면, 직접 면접관 유형과 상황을 설정해보세요",
                     hintStyle: TextStyle(color: Colors.white60, fontSize: 14),

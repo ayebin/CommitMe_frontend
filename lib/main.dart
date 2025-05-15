@@ -7,6 +7,7 @@ import 'package:commit_me/userProvider.dart';
 import 'package:commit_me/infoProvider.dart';
 import 'package:commit_me/sessionProvider.dart';
 import 'package:commit_me/messageProvider.dart';
+import 'package:commit_me/chatwidgetProvider.dart';
 
 void main() {
   runApp(
@@ -16,6 +17,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => InfoProvider()),
         ChangeNotifierProvider(create: (context) => SessionProvider()),
         ChangeNotifierProvider(create: (_) => MessageProvider()),
+        ChangeNotifierProvider(create: (_) => ChatWidgetProvider()),
       ],
       child: MyApp(),
     ),

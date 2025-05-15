@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:commit_me/design/color_system.dart';
 import 'package:commit_me/Widget_Chat/role_type.dart';
 import 'package:commit_me/Widget_Chat/feedback_type.dart';
+import 'package:provider/provider.dart';
+import 'package:commit_me/chatwidgetProvider.dart';
 
 class ChatSetting extends StatefulWidget {
 
@@ -11,6 +13,8 @@ class ChatSetting extends StatefulWidget {
 }
 
 class _ChatSettingState extends State<ChatSetting> {
+
+  final TextEditingController roleController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +39,7 @@ class _ChatSettingState extends State<ChatSetting> {
                     ),
                   ],
                 ),
-                child: RoleType(),
+                child: RoleType(controller: roleController),
               ),
             ),
             SizedBox(height: 20,),
@@ -77,7 +81,14 @@ class _ChatSettingState extends State<ChatSetting> {
                 ),
                 SizedBox(width: 22,),
                 ElevatedButton(
-                  onPressed: () => {},
+                  onPressed: () {
+                    final feedbackProvider = Provider.of<ChatWidgetProvider>(context, listen: false);
+                    feedbackProvider.setRole(roleController.text);  // ✅ 여기서 roleController 바로 사용
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('설정이 적용되었습니다')),
+                    );
+                  },
+
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(130,60),
                     shape: RoundedRectangleBorder(
