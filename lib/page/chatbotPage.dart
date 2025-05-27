@@ -66,7 +66,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
             child: Row(
               children: [
                 Expanded(flex: 1, child: ChatSetting()),
-                Expanded(flex: 1, child: ChatScreen()),
+                Expanded(flex: 4, child: ChatScreen()),
               ],
             ),
           ),

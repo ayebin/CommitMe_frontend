@@ -21,30 +21,45 @@ class _ChatSettingState extends State<ChatSetting> {
     return Container(
       color: AppColors.backBlue,
       child: Padding(
-        padding: const EdgeInsets.only(left: 40, top: 40, bottom: 40, right: 40),
+        padding: const EdgeInsets.only(left: 20, top: 20, bottom: 20, right: 20),
         child: Column(
           children: [
-            Expanded(
-              child: Container(
-                height: 230,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: RoleType(controller: roleController),
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
+              child: RoleType(controller: roleController),
             ),
             SizedBox(height: 20,),
             Container(
-                height: 210,
+              padding: EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: FeedbackType()
+            ),
+            SizedBox(height: 20,),
+            Container(
+                padding: EdgeInsets.only(left: 15, bottom: 15, top: 15),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.white,
@@ -57,55 +72,37 @@ class _ChatSettingState extends State<ChatSetting> {
                     ),
                   ],
                 ),
-                child: FeedbackType()
+                child: FeedbackLength()
             ),
-            SizedBox(height: 20,),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                    height: 170,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 1,
-                          blurRadius: 3,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: FeedbackLength()
-                ),
-                SizedBox(width: 22,),
-                ElevatedButton(
-                  onPressed: () {
-                    final feedbackProvider = Provider.of<ChatWidgetProvider>(context, listen: false);
-                    feedbackProvider.setRole(roleController.text);  // ✅ 여기서 roleController 바로 사용
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('설정이 적용되었습니다')),
-                    );
-                  },
 
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(130,60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      side: BorderSide(
-                        color: AppColors.DarkBlue,
-                        width: 1,
-                      ),
+            Expanded(child: Container()),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  final feedbackProvider = Provider.of<ChatWidgetProvider>(context, listen: false);
+                  feedbackProvider.setRole(roleController.text);  // ✅ 여기서 roleController 바로 사용
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('설정이 적용되었습니다')),
+                  );
+                },
+
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    side: BorderSide(
+                      color: AppColors.DarkBlue,
+                      width: 1,
                     ),
-                    backgroundColor: Colors.white,
                   ),
-                  child: Text(
-                    '적용하기',
-                    style: TextStyle(color: AppColors.DarkBlue, fontWeight: FontWeight.w800),
-                  ),
+                  backgroundColor: Colors.white,
                 ),
-              ],
+                child: Text(
+                  '적용하기',
+                  style: TextStyle(color: AppColors.DarkBlue, fontWeight: FontWeight.w800),
+                ),
+              ),
             ),
           ],
         ),

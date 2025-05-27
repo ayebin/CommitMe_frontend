@@ -1,8 +1,10 @@
 // upload_resume.dart
+import 'package:commit_me/infoProvider.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:commit_me/design/color_system.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
 
 Future<void> showUploadDialog(BuildContext context) async {
   return showDialog(
@@ -56,8 +58,9 @@ Future<void> showUploadDialog(BuildContext context) async {
                           );
 
                           if (result != null) {
-                            File file = File(result.files.single.path!);
+                            //File file = File(result.files.single.path!);
                             // TODO: 파일 업로드 처리
+                            Provider.of<InfoProvider>(context, listen: false).setUploadedFile(result.files.first);
                             Navigator.of(context).pop(); // 팝업 닫기
                           }
                         },
