@@ -25,7 +25,17 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _showOverlay = true;
 
   int _questionIndex = 0;
-  String _currentQuestion = "Q. Linked list가 무엇입니까?";
+  String _currentQuestion = "Q. Interview Question";
+
+  final TextEditingController _finalAnswerController = TextEditingController(); // 최종 답변 입력용
+  String _feedbackText = '최종 답변 작성 후 제출 버튼을 누르시면 피드백이 생성됩니다.'; // 피드백 내용 표시용
+  String? _qualityText;
+
+  bool _isLoadingChat = false;
+  bool _isLoadingFeedback = false;
+  bool _isLoadingReport = false;
+
+  bool _isFinalAnswerSubmitted = false;
 
   void _handleSendMessage(String message) async {
     if (message.isNotEmpty) {
@@ -106,7 +116,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
         setState(() {
           _messages.clear();
-          //_messages.add({'message': "Q. $question", 'sender': 'system'}); // or 따로 질문 표시 UI
+          _finalAnswerController.clear();
+          _feedbackText = '최종 답변 작성 후 제출 버튼을 누르시면 피드백이 생성됩니다.';
+          _isFinalAnswerSubmitted = false;  // ✅ 제출 상태 초기화
+          _qualityText = null;
           _questionIndex += 1;
           _currentQuestion = "Q. $question";
         });
@@ -118,6 +131,108 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _submitFinalAnswer(String finalAnswer) async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    final infoId = Provider.of<InfoProvider>(context, listen: false).infoId;
+    final sessionId = Provider.of<SessionProvider>(context, listen: false).sessionId;
+
+    final chatSettings = Provider.of<ChatWidgetProvider>(context, listen: false);
+    final role = chatSettings.role;
+    final feedbackLength = chatSettings.feedbackLength;
+    final feedbackType = chatSettings.feedbackType;
+
+    final body = {
+      'user_id': userId,
+      'info_id': infoId,
+      'session_id': sessionId,
+      'final_answer': finalAnswer,
+      'role': role,
+      'feedbackLength': feedbackLength,
+      'feedbackType': feedbackType,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1:5000/chat/feedback"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        final feedback = res['feedback'];
+        final quality = res['quality'];
+
+        setState(() {
+          _feedbackText = feedback;
+          _qualityText = quality != null ? '피드백 점수: $quality / 5' : null;
+          _isFinalAnswerSubmitted = true;
+        });
+      } else {
+        print("백엔드 오류: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("에러: $e");
+    }
+  }
+
+  Future<void> _fetchFinalReport() async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    final infoId = Provider.of<InfoProvider>(context, listen: false).infoId;
+    final sessionId = Provider.of<SessionProvider>(context, listen: false).sessionId;
+
+    final chatSettings = Provider.of<ChatWidgetProvider>(context, listen: false);
+    final role = chatSettings.role;
+    final feedbackLength = chatSettings.feedbackLength;
+    final feedbackType = chatSettings.feedbackType;
+
+    final body = {
+      'user_id': userId,
+      'info_id': infoId,
+      'session_id': sessionId,
+      'role': role,
+      'feedbackLength': feedbackLength,
+      'feedbackType': feedbackType,
+    };
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Expanded(child: Text("최종 보고서를 생성 중입니다...")),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1:5000/chat/report"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        final report = res['report'];
+
+        Navigator.of(context).pop();
+
+        showDialog(
+          context: context,
+          builder: (context) => ReportDialog(report: report), // ✅ 변경
+        );
+      } else {
+        print("최종 보고서 오류: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("에러: $e");
+    }
+  }
 
 
   void _handleTestMessage() {
@@ -200,7 +315,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(_currentQuestion, style: TextStyle(fontSize: SH*0.025)),
-                      Text("$_questionIndex/10", style: TextStyle(fontSize: SH*0.018, fontWeight: FontWeight.bold))
+                      Text("$_questionIndex/3", style: TextStyle(fontSize: SH*0.018, fontWeight: FontWeight.bold))
                     ],
                   ),
                 ),
@@ -213,6 +328,20 @@ class _ChatScreenState extends State<ChatScreen> {
                         flex: 6,
                         child: Column(
                           children: [
+                            if (_isLoadingChat) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SizedBox(width: 30),
+                                    CircularProgressIndicator(color: Color(0xFF1B2559)),
+                                    SizedBox(width: 10),
+                                    Text("답변 생성 중입니다...", style: TextStyle(color: Colors.grey)),
+                                  ],
+                                ),
+                              ),
+                            ],
                             SizedBox(height: 20,),
                             Expanded(
                               child: SingleChildScrollView(
@@ -322,6 +451,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                       ),
                                       Expanded(
                                         child: TextField(
+                                          controller: _finalAnswerController,
                                           decoration: InputDecoration(
                                             filled: true,
                                             fillColor: Colors.white,
@@ -338,14 +468,21 @@ class _ChatScreenState extends State<ChatScreen> {
                                           mainAxisAlignment: MainAxisAlignment.end,
                                           children: [
                                             ElevatedButton(
-                                              onPressed: () {},
+                                              onPressed: _isFinalAnswerSubmitted
+                                                  ? null // 🔹 제출되었으면 버튼 비활성화
+                                                  : () {
+                                                final finalAnswer = _finalAnswerController.text.trim();
+                                                if (finalAnswer.isNotEmpty) {
+                                                  _submitFinalAnswer(finalAnswer);
+                                                }
+                                              },
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor: Color(0xFF1B2559),
+                                                backgroundColor: _isFinalAnswerSubmitted ? Colors.grey : Color(0xFF1B2559),
                                                 foregroundColor: Colors.white,
                                                 padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                               ),
-                                              child: Text('제출', style: TextStyle(fontSize: 16),),
+                                              child: Text('제출', style: TextStyle(fontSize: 16)),
                                             ),
                                           ],
                                         ),
@@ -378,9 +515,37 @@ class _ChatScreenState extends State<ChatScreen> {
                                           width: double.infinity,
                                           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
                                           decoration: BoxDecoration(color: Color(0xFFD5DDEC), border: Border(bottom: BorderSide(color: Color(0xFF9C9C9C)))),
-                                          child: Text(
-                                            '제출 버튼을 누르시면 피드백이 생성됩니다.',
-                                            style: TextStyle(fontSize: 16, color: Colors.white,),
+                                          child: _isLoadingFeedback
+                                              ? Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                CircularProgressIndicator(color: Color(0xFF1B2559)),
+                                                SizedBox(height: 10),
+                                                Text("피드백 생성 중입니다...", style: TextStyle(color: Colors.grey)),
+                                              ],
+                                            ),
+                                          )
+                                              : Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                _feedbackText,
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: _feedbackText == '최종 답변 작성 후 제출 버튼을 누르시면 피드백이 생성됩니다.'
+                                                      ? Colors.grey
+                                                      : Colors.black,
+                                                ),
+                                              ),
+                                              if (_qualityText != null) ...[
+                                                SizedBox(height: 10),
+                                                Text(
+                                                  _qualityText!,
+                                                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                                                ),
+                                              ],
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -400,7 +565,26 @@ class _ChatScreenState extends State<ChatScreen> {
                                       width: 400,
                                       height: 50,
                                       child: ElevatedButton(
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          if (_questionIndex < 3) {
+                                            // 질문이 10개 미만일 때는 팝업만 띄움
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: Text("질문 부족"),
+                                                content: Text("최종 보고서를 생성하려면 10개의 질문에 응답해야 합니다."),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.of(context).pop(),
+                                                    child: Text("확인"),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                          _fetchFinalReport();
+                                        },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.grey.shade100,
                                           foregroundColor: Color(0xFF1B2559),
@@ -417,16 +601,53 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                     SizedBox(width: 5),
                                     ElevatedButton(
-                                        onPressed: () {
-                                          _generateQuestion(); // 질문 생성 실행
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color(0xFF1B2559),
-                                            foregroundColor: Colors.white,
-                                            padding: EdgeInsets.all(20),
-                                            shape: CircleBorder()
-                                        ),
-                                        child: Icon(Icons.arrow_forward)
+                                      onPressed: () {
+                                        if (_questionIndex >= 3) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text("최종 보고서"),
+                                              content: Text("질문이 모두 끝났습니다. 최종 보고서를 확인하세요."),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text("확인"),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          return; // 다음 질문 호출 막기
+                                        }
+
+                                        // ✅ 최종 답변이 비어있으면 다음 질문 막기
+                                        if (_finalAnswerController.text.trim().isEmpty) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: Text("답변 필요"),
+                                              content: Text("최종 답변을 작성한 후 제출 버튼을 눌러주세요."),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.of(context).pop(),
+                                                  child: Text("확인"),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        _generateQuestion(); // ✅ 질문 생성 실행
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Color(0xFF1B2559),
+                                        foregroundColor: Colors.white,
+                                        padding: EdgeInsets.all(20),
+                                        shape: CircleBorder(),
+                                      ),
+                                      child: Icon(Icons.arrow_forward),
                                     ),
                                   ],
                                 ),
@@ -461,6 +682,7 @@ class ChatInputBar extends StatefulWidget {
 
 class _ChatInputBarState extends State<ChatInputBar> {
   final TextEditingController _controller = TextEditingController();
+
   final FocusNode _focusNode = FocusNode();
 
   void _sendMessage() {

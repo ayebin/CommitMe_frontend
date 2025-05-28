@@ -4,74 +4,53 @@ import 'package:commit_me/design/color_system.dart';
 import 'package:commit_me/Widget_Chat/role_type.dart';
 import 'package:commit_me/Widget_Chat/feedback_type.dart';
 
-class ReportDialog extends StatefulWidget {
-  const ReportDialog({super.key});
+class ReportDialog extends StatelessWidget {
+  final String report; // ✅ 최종 보고서 전체 문자열
 
-  @override
-  State<ReportDialog> createState() => _ComprehensiveReportDialogState();
-}
-
-class _ComprehensiveReportDialogState extends State<ReportDialog> {
-  late String languageExpression;
-  late String weakPoints;
-  late String improvement;
-  late String progress;
-
-  @override
-  void initState() {
-    super.initState();
-    languageExpression = '당신은 주로 부드럽고 공감적인 언어를 사용하고 있어요. 감정 표현이 솔직하고 풍부합니다.';
-    weakPoints = '슬픔이나 외로움과 같은 부정적인 감정을 자주 표현하고 있어요. 반복되는 단어 사용도 확인되었습니다.';
-    improvement = '긍정적인 경험을 회상하거나 감사한 점을 기록하는 습관을 가져보세요. 문장을 다양하게 바꾸는 연습도 도움이 됩니다.';
-    progress = '최근 감정 표현의 폭이 넓어지고 있으며, 점점 더 구체적인 언어를 사용하는 경향이 나타나고 있어요.';
-  }
+  const ReportDialog({super.key, required this.report});
 
   @override
   Widget build(BuildContext context) {
+    // 보고서 문자열을 파싱
+    final sections = _parseReport(report);
+
     return AlertDialog(
       backgroundColor: Colors.white,
       title: Center(
-        child: Text(
-          '전체 종합 레포트',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
+        child: Text('전체 종합 레포트', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+      ),
+      content: SizedBox(
+        width: 500,
+        height: MediaQuery.of(context).size.height * 0.6, // ✅ 다이얼로그 높이 제한 (스크롤 가능)
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              sectionTitle('언어적 표현'),
+              sectionText(sections['언어적 표현'] ?? ''),
+              sectionTitle('취약 부분'),
+              sectionText(sections['취약 부분'] ?? ''),
+              sectionTitle('개선 방향'),
+              sectionText(sections['개선해야 할 점'] ?? ''),
+              sectionTitle('학습 추이'),
+              sectionText(sections['답변의 종합적인 퀄리티로 보는 면접 대비 정도 추이'] ?? ''),
+            ],
           ),
         ),
       ),
-      content: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            sectionTitle('언어적 표현'),
-            sectionText(languageExpression),
-            sectionTitle('취약 부분'),
-            sectionText(weakPoints),
-            sectionTitle('개선 방향'),
-            sectionText(improvement),
-            sectionTitle('학습 추이'),
-            sectionText(progress),
-          ],
-        ),
-      ),
-      actionsAlignment: MainAxisAlignment.center, // 버튼 가운데 정렬
+      actionsAlignment: MainAxisAlignment.center,
       actions: [
         Container(
           padding: EdgeInsets.symmetric(horizontal: 35),
           decoration: BoxDecoration(
-            color: AppColors.DarkBlue, // 파란색 배경
-            borderRadius: BorderRadius.circular(30), // 둥근 모서리
+            color: AppColors.DarkBlue,
+            borderRadius: BorderRadius.circular(30),
           ),
           child: TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Text(
-                '닫기',
-                style: TextStyle(color: Colors.white), // 텍스트 흰색
-              ),
+              child: Text('닫기', style: TextStyle(color: Colors.white)),
             ),
           ),
         ),
@@ -79,30 +58,31 @@ class _ComprehensiveReportDialogState extends State<ReportDialog> {
     );
   }
 
-  Widget sectionTitle(String title) {
-    return Container(
-      margin: const EdgeInsets.only(top: 12.0, bottom: 6.0),
-      padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: Color(0xFFF4EEC2),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          color: Colors.black,
-        ),
-      ),
-    );
+  Map<String, String> _parseReport(String report) {
+    final sections = <String, String>{};
+    final regex = RegExp(r'(\d+\.\s*)([^\n]+)');
+    final matches = regex.allMatches(report);
+
+    for (int i = 0; i < matches.length; i++) {
+      final title = matches.elementAt(i).group(2)?.trim() ?? '';
+      final start = matches.elementAt(i).end;
+      final end = i + 1 < matches.length ? matches.elementAt(i + 1).start : report.length;
+      final content = report.substring(start, end).trim();
+      sections[title] = content;
+    }
+
+    return sections;
   }
 
+  Widget sectionTitle(String title) => Container(
+    margin: const EdgeInsets.only(top: 12.0, bottom: 6.0),
+    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+    decoration: BoxDecoration(color: Color(0xFFF4EEC2), borderRadius: BorderRadius.circular(12.0)),
+    child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+  );
 
-  Widget sectionText(String content) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(content),
-    );
-  }
+  Widget sectionText(String content) => Padding(
+    padding: const EdgeInsets.only(bottom: 8.0),
+    child: Text(content),
+  );
 }
