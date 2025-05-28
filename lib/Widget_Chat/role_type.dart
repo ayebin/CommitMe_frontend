@@ -107,91 +107,52 @@ class _RoleTypeState extends State<RoleType> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(25),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("면접관 유형", style: TextStyle(fontSize:18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 10,),
-          Text("면접관 유형을 선택해, 다양한 상황에 맞춤형 연습을 해보세요 ",
-            style: TextStyle(fontSize: 12, color: Colors.grey),),
-          SizedBox(height: 20,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              InterviewRoleButton(
-                label: '자기소개서/이력서 중심형',
-                roleKey: 'role1',
-                isSelected: isRole1,
-                onTap: selectRole,
-              ),
-              InterviewRoleButton(
-                label: '친절하고 유도적인 서포터형',
-                roleKey: 'role2',
-                isSelected: isRole2,
-                onTap: selectRole,
-              ),
-              InterviewRoleButton(
-                label: '압박형',
-                roleKey: 'role3',
-                isSelected: isRole3,
-                onTap: selectRole,
-              ),
-            ],
-          ),
-          SizedBox(height: 8,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              InterviewRoleButton(
-                label: '사실확인형',
-                roleKey: 'role4',
-                isSelected: isRole4,
-                onTap: selectRole,
-              ),
-              InterviewRoleButton(
-                label: '비즈니스 실무 중심형',
-                roleKey: 'role5',
-                isSelected: isRole5,
-                onTap: selectRole,
-              ),
-              InterviewRoleButton(
-                label: '반응이 없는 유도형',
-                roleKey: 'role6',
-                isSelected: isRole6,
-                onTap: selectRole,
-              ),
-            ],
-          ),
-          SizedBox(height: 15,),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: AppColors.DarkBlue.withOpacity(0.5)
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: widget.controller,
-                  decoration: InputDecoration(
-                    hintText: "여기에 입력하세요: \n원하는 유형이 없다면, 직접 면접관 유형과 상황을 설정해보세요",
-                    hintStyle: TextStyle(color: Colors.white60, fontSize: 14),
-                    border: InputBorder.none,
-                  ),
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.center,
-                ),
-              ),
-            ),
-          )
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("면접관 유형", style: TextStyle(fontSize:18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 10,),
+        Text("면접관 유형을 선택해, 다양한 상황에 맞춤형 연습을 해보세요",
+          style: TextStyle(fontSize: 13, color: Colors.grey),),
+        SizedBox(height: 10,),
+        InterviewRoleButton(
+          label: '자기소개서/이력서 중심형',
+          roleKey: 'role1',
+          isSelected: isRole1,
+          onTap: selectRole,
+        ), SizedBox(height: 8,),
+        InterviewRoleButton(
+          label: '친절하고 유도적인 서포터형',
+          roleKey: 'role2',
+          isSelected: isRole2,
+          onTap: selectRole,
+        ), SizedBox(height: 8,),
+        InterviewRoleButton(
+          label: '압박형',
+          roleKey: 'role3',
+          isSelected: isRole3,
+          onTap: selectRole,
+        ), SizedBox(height: 8,),
+        InterviewRoleButton(
+          label: '사실확인형',
+          roleKey: 'role4',
+          isSelected: isRole4,
+          onTap: selectRole,
+        ), SizedBox(height: 8,),
+        InterviewRoleButton(
+          label: '비즈니스 실무 중심형',
+          roleKey: 'role5',
+          isSelected: isRole5,
+          onTap: selectRole,
+        ), SizedBox(height: 8,),
+        InterviewRoleButton(
+          label: '반응이 없는 유도형',
+          roleKey: 'role6',
+          isSelected: isRole6,
+          onTap: selectRole,
+        ),
 
-
-        ],
-      ),
+      ],
     );
   }
 }
@@ -214,26 +175,29 @@ class InterviewRoleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: ElevatedButton(
-        onPressed: () => onTap(roleKey),
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size(200, 35),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: isSelected ? Colors.transparent : AppColors.backBlue,
-              width: 1,
+      padding: const EdgeInsets.only(right: 1),
+      child: SizedBox(
+        width: 450, // 원하는 너비로 설정
+        child: ElevatedButton(
+          onPressed: () => onTap(roleKey),
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size(250, 37),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: isSelected ? Colors.transparent : AppColors.backBlue,
+                width: 1,
+              ),
             ),
+            backgroundColor: isSelected ? AppColors.DarkBlue : Colors.white,
           ),
-          backgroundColor: isSelected ? AppColors.DarkBlue : Colors.white,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 12,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              fontSize: 14,
+            ),
           ),
         ),
       ),

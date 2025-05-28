@@ -22,6 +22,10 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   int otherMessageCount = 0;
 
+  bool _showOverlay = true;
+
+  int _questionIndex = 0;
+  String _currentQuestion = "Q. Linked list가 무엇입니까?";
 
   void _handleSendMessage(String message) async {
     if (message.isNotEmpty) {
@@ -75,6 +79,46 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _generateQuestion() async {
+    final userId = Provider.of<UserProvider>(context, listen: false).userId;
+    final infoId = Provider.of<InfoProvider>(context, listen: false).infoId;
+    final sessionId = Provider.of<SessionProvider>(context, listen: false).sessionId;
+
+    final chatSettings = Provider.of<ChatWidgetProvider>(context, listen: false);
+    final role = chatSettings.role;
+
+    final body = {
+      'user_id': userId,
+      'info_id': infoId,
+      'session_id': sessionId,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1:5000/chat/question"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final res = jsonDecode(response.body);
+        final question = res['question'];
+
+        setState(() {
+          _messages.clear();
+          //_messages.add({'message': "Q. $question", 'sender': 'system'}); // or 따로 질문 표시 UI
+          _questionIndex += 1;
+          _currentQuestion = "Q. $question";
+        });
+      } else {
+        print("질문 생성 오류: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("에러: $e");
+    }
+  }
+
+
 
   void _handleTestMessage() {
     String otherMessage;
@@ -97,150 +141,309 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Widget _buildOverlay(double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.white.withOpacity(0.8), // 반투명 흰색
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _showOverlay = false;
+            });
+            _generateQuestion(); // ✅ 질문 생성 호출
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF1B2559),
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: Text("시작하기", style: TextStyle(fontSize: 25)),
+        ),
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    double SW = MediaQuery.of(context).size.width;
+    double SH = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.only(right: 10, left: 10, bottom: 20),
-        color: Colors.white,
-        child: Column(
-          children: [
-            SizedBox(height: 55,),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: _messages.map((messageData) {
-                    final message = messageData['message']!;
-                    final sender = messageData['sender']!;
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.only(left: 20, top: 25, bottom: 25, right: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 3,
+                  blurRadius: 7,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                //질문칸
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFF9C9C9C)))),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(_currentQuestion, style: TextStyle(fontSize: SH*0.025)),
+                      Text("$_questionIndex/10", style: TextStyle(fontSize: SH*0.018, fontWeight: FontWeight.bold))
+                    ],
+                  ),
+                ),
 
-
-                    return Row(
-                      mainAxisAlignment: sender == 'user' ? MainAxisAlignment.end : MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (sender == 'system') ...[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 30.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.DarkBlue,
-                                  width: 0.5,
-                                ),
-                              ),
-                              child: CircleAvatar(
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      'assets/images/chatbot_icon.png',
-                                      width: 40,
-                                      height: 40,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  radius: 20,
-                                  backgroundColor: Colors.white
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 5),
-                        ],
-                        Column(
-                          crossAxisAlignment: sender == 'user' ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                Expanded(
+                  child: Row(
+                    children: [
+                      //질의응답 챗구간
+                      Expanded(
+                        flex: 6,
+                        child: Column(
                           children: [
-                            Container(
-                              constraints: BoxConstraints(
-                                maxWidth: MediaQuery.of(context).size.width * 0.6, // 최대 너비를 화면의 60%로 제한
-                              ),
-                              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                              margin: EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: sender == 'user' ? Color(0xFF689ADB) : Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: Color(0xFF627A98),
+                            SizedBox(height: 20,),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: _messages.map((messageData) {
+                                    final message = messageData['message']!;
+                                    final sender = messageData['sender']!;
+
+                                    return Row(
+                                      mainAxisAlignment: sender == 'user' ? MainAxisAlignment.end : MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (sender == 'system') ...[
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 30.0),
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: AppColors.DarkBlue,
+                                                  width: 0.5,
+                                                ),
+                                              ),
+                                              child: CircleAvatar(
+                                                  child: ClipOval(
+                                                    child: Image.asset(
+                                                      'assets/images/chatbot_icon.png',
+                                                      width: 40,
+                                                      height: 40,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                  radius: 20,
+                                                  backgroundColor: Colors.white
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 5),
+                                        ],
+                                        Column(
+                                          crossAxisAlignment: sender == 'user' ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              constraints: BoxConstraints(
+                                                maxWidth: MediaQuery.of(context).size.width * 0.6,
+                                              ),
+                                              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                                              margin: EdgeInsets.symmetric(horizontal: 10),
+                                              decoration: BoxDecoration(
+                                                color: sender == 'user' ? Color(0xFF689ADB) : Colors.white,
+                                                borderRadius: BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: Color(0xFF627A98),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                message,
+                                                style: TextStyle(
+                                                  color: sender == 'user' ? Colors.white : Color(0xFF1B2559),
+                                                  fontSize: 16,
+                                                ),
+                                                softWrap: true,
+                                              ),
+                                            ),
+                                            SizedBox(height: 15,)
+                                          ],
+                                        ),
+                                        if (sender == 'user') ...[
+                                          SizedBox(width: 23),
+                                        ],
+                                      ],
+                                    );
+                                  }).toList(),
                                 ),
-                              ),
-                              child: Text(
-                                message,
-                                style: TextStyle(
-                                  color: sender == 'user' ? Colors.white : Color(0xFF1B2559),
-                                  fontSize: 16,
-                                ),
-                                softWrap: true,
                               ),
                             ),
-                            SizedBox(height: 30,)   //채팅간격
+                            ChatInputBar(
+                              onSend: _handleSendMessage,
+                            ),
                           ],
                         ),
-                        if (sender == 'user') ...[
-                          SizedBox(width: 23),
-                        ],
-                      ],
-                    );
-                  }).toList(),
+                      ),
+
+                      //피드백 구간
+                      Expanded(
+                        flex: 5,
+                        child: Container(
+                          child: Column(
+                            children: [
+                              //1. 최종답변 입력 컨테이너
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  color: Colors.white,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                        decoration: BoxDecoration(color: Color(0xFFF7F8FA), border: Border(bottom: BorderSide(color: Color(0xFF9C9C9C)))),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.sort),
+                                            SizedBox(width: 10,),
+                                            Text("당신의 최종 답변", style: TextStyle(fontSize: 16)),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: TextField(
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            hintText: '답변을 입력하세요',
+                                            hintStyle: TextStyle(color: Colors.grey),
+                                            border: OutlineInputBorder(borderSide: BorderSide.none,),
+                                          ),
+                                          maxLines: null,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 20),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            ElevatedButton(
+                                              onPressed: () {},
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Color(0xFF1B2559),
+                                                foregroundColor: Colors.white,
+                                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10),),
+                                              ),
+                                              child: Text('제출', style: TextStyle(fontSize: 16),),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 20,),
+                              //2. 피드백 컨테이너
+                              Expanded(
+                                flex: 1,
+                                child: Container(
+                                  color: Colors.white,
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                                        decoration: BoxDecoration(color: Color(0xFFF7F8FA), border: Border(top: BorderSide(color: Color(0xFF9C9C9C)),bottom: BorderSide(color: Color(0xFF9C9C9C)))),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.sort),
+                                            SizedBox(width: 10,),
+                                            Text("답변에 대한 피드백", style: TextStyle(fontSize: 16)),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          width: double.infinity,
+                                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                                          decoration: BoxDecoration(color: Color(0xFFD5DDEC), border: Border(bottom: BorderSide(color: Color(0xFF9C9C9C)))),
+                                          child: Text(
+                                            '제출 버튼을 누르시면 피드백이 생성됩니다.',
+                                            style: TextStyle(fontSize: 16, color: Colors.white,),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 15,),
+
+                              //3. 보고서 & 다음버튼
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    SizedBox(
+                                      width: 400,
+                                      height: 50,
+                                      child: ElevatedButton(
+                                        onPressed: () {},
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.grey.shade100,
+                                          foregroundColor: Color(0xFF1B2559),
+                                          padding: EdgeInsets.symmetric(horizontal: 60, vertical: 12),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                            side: BorderSide(
+                                              color: Color(0xFF1B2559),
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text('최종 보고서 보러가기', style: TextStyle(fontSize: 16, ),),
+                                      ),
+                                    ),
+                                    SizedBox(width: 5),
+                                    ElevatedButton(
+                                        onPressed: () {
+                                          _generateQuestion(); // 질문 생성 실행
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color(0xFF1B2559),
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.all(20),
+                                            shape: CircleBorder()
+                                        ),
+                                        child: Icon(Icons.arrow_forward)
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
+                SizedBox(height: 20,)
+              ],
             ),
-
-            Padding(
-              padding: const EdgeInsets.only(left: 30),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () {
-                      setState(() {
-                        _messages.add({
-                          'message': '다음 질문을 받고 싶어요',
-                          'sender': 'user',
-                        });
-                      });
-
-                      // 자동 응답도 받고 싶다면 이 부분도 추가
-                      Future.delayed(Duration(seconds: 2), () {
-                        _handleTestMessage(); // 다음 응답 추가
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                      margin: EdgeInsets.only(right: 10, bottom: 10),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFC9DDED),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: Text('다음 질문을 받고 싶어요'),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => const ReportDialog(),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                      margin: EdgeInsets.only(right: 10, bottom: 10),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFC9DDED),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: Text('전체적인 종합 레포트를 받고 싶어요'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 5),
-            ChatInputBar(
-              onSend: _handleSendMessage,
-            ),
-            // ChatInputBar(
-            //   onSend: _handleTestMessage,
-            // ),
-            SizedBox(height: 40,)
-          ],
-        ),
+          ),
+          if (_showOverlay) _buildOverlay(SW, SH),
+        ],
       ),
     );
   }
