@@ -26,14 +26,14 @@ class ReportDialog extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              sectionTitle('언어적 표현'),
-              sectionText(sections['언어적 표현'] ?? ''),
+              sectionTitle('언어적 표현 특징'),
+              sectionText(sections['언어적 표현 특징'] ?? ''),
               sectionTitle('취약 부분'),
               sectionText(sections['취약 부분'] ?? ''),
               sectionTitle('개선 방향'),
               sectionText(sections['개선해야 할 점'] ?? ''),
-              sectionTitle('학습 추이'),
-              sectionText(sections['답변의 종합적인 퀄리티로 보는 면접 대비 정도 추이'] ?? ''),
+              sectionTitle('면접 대비 정도 추이'),
+              sectionText(sections['면접 대비 정도 추이'] ?? ''),
             ],
           ),
         ),
@@ -60,19 +60,17 @@ class ReportDialog extends StatelessWidget {
 
   Map<String, String> _parseReport(String report) {
     final sections = <String, String>{};
-    final regex = RegExp(r'(\d+\.\s*)([^\n]+)');
-    final matches = regex.allMatches(report);
+    final regex = RegExp(r'^\s*\[(.+?)\]\s*\n([\s\S]+?)(?=\n\s*\[|$)', multiLine: true);
 
-    for (int i = 0; i < matches.length; i++) {
-      final title = matches.elementAt(i).group(2)?.trim() ?? '';
-      final start = matches.elementAt(i).end;
-      final end = i + 1 < matches.length ? matches.elementAt(i + 1).start : report.length;
-      final content = report.substring(start, end).trim();
+    for (final match in regex.allMatches(report)) {
+      final title = match.group(1)?.trim() ?? '';
+      final content = match.group(2)?.trim() ?? '';
       sections[title] = content;
     }
 
     return sections;
   }
+
 
   Widget sectionTitle(String title) => Container(
     margin: const EdgeInsets.only(top: 12.0, bottom: 6.0),
