@@ -7,13 +7,12 @@ class MessageProvider with ChangeNotifier {
   List<Map<String, String>> get messages => _messages;
 
   String firstSystemMessage = "안녕하세요! 👋\n"
-      "맞춤형 여행 서비스 **TravelMate**입니다 ✨\n\n"
-      "알려주신 기본 정보를 바탕으로, 여행 준비부터 일정 계획까지 맞춤형 여행 서비스를 제공할게요! 🧳✈️\n"
+      "IT 계열 맞춤형 면접 준바 서비스 **CommitMe**입니다 ✨\n\n"
+      "알려주신 기본 정보를 바탕으로, 면접을 잘 대비할 수 있게 도와드리겠습니다! 💻️💪🏻\n"
       "\n"
-      "1️⃣ 추천: ~~ 추천해줘 (나라, 장소, 음식 등)\n"
-      "2️⃣ 일정: ~~ 일정 짜줘\n"
-      "3️⃣ 준비물: ~~ 준비물 알려줘\n"
-      "\n원하시는 내용을 말해주세요! 😊💬";
+      "1️⃣ '시작' 또는 '준비 됨' 이라고 말씀해주시면 예상 질문을 드리겠습니다!📃\n"
+      "2️⃣ 질문에 답변을 해주시면, 보완해야할 점을 알려드리겠습니다!📍\n"
+      "\n준비되셨습니까? 😊💬";
 
   String getLatestContentBySubstring(String substring) {
     final filteredMessages = _messages
@@ -88,12 +87,12 @@ class MessageProvider with ChangeNotifier {
 
   void updateResponseMessage(String content) {
     _messages.removeWhere((msg) => msg['sender'] == 'loading');
-    _messages.add({'content': content, 'sender': 'answer'});
+    _messages.add({'content': content, 'sender': 'system'});
     notifyListeners();
   }
 
   void addSystemMessage(String content) {
-    _messages.add({'content': content, 'sender': 'answer'});
+    _messages.add({'content': content, 'sender': 'system'});
     notifyListeners();
   }
 
