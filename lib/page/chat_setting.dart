@@ -40,24 +40,24 @@ class _ChatSettingState extends State<ChatSetting> {
               ),
               child: RoleType(controller: roleController),
             ),
-            SizedBox(height: 20,),
+            SizedBox(height: 10,),
             Container(
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 1,
-                    blurRadius: 3,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: FeedbackType()
+                padding: EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: FeedbackType()
             ),
-            SizedBox(height: 20,),
+            SizedBox(height: 10,),
             Container(
                 padding: EdgeInsets.only(left: 15, bottom: 15, top: 15),
                 decoration: BoxDecoration(

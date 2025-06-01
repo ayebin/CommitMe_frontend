@@ -127,7 +127,7 @@ class _FeedbackLengthState extends State<FeedbackLength> {
                     ),
                     SizedBox(width: 10,),
                     Text(
-                      '구체적인 사례나 \n설명을 붙여 답변',
+                      '구체적인 사례나 설명을 붙여 답변',
                       style: TextStyle(fontSize:12, color: isDetail ? AppColors.DarkBlue: Colors.grey),
                     ),
                   ],

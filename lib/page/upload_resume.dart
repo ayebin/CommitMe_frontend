@@ -54,13 +54,15 @@ Future<void> showUploadDialog(BuildContext context) async {
                         onPressed: () async {
                           FilePickerResult? result = await FilePicker.platform.pickFiles(
                             type: FileType.custom,
-                            allowedExtensions: ['pdf'],
+                            allowedExtensions: ['pdf', 'docx', 'jpg', 'png'],
+                            withData: true,
                           );
 
-                          if (result != null) {
-                            //File file = File(result.files.single.path!);
-                            // TODO: 파일 업로드 처리
-                            Provider.of<InfoProvider>(context, listen: false).setUploadedFile(result.files.first);
+                          if (result != null && result.files.isNotEmpty) {
+                            final file = result.files.first;
+                            print('✅ 파일 이름: ${file.name}');
+                            print('✅ 파일 바이트 길이: ${file.bytes?.length}');
+                            Provider.of<InfoProvider>(context, listen: false).setUploadedFile(file);
                             Navigator.of(context).pop(); // 팝업 닫기
                           }
                         },

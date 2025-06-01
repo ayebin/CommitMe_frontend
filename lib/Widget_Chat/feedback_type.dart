@@ -86,7 +86,7 @@ class _FeedbackTypeState extends State<FeedbackType> {
               ),
             ),
             SizedBox(width: 5,),
-            Text("정형적&사실적으로, \n신중한 답변 스타일",
+            Text("정형적&사실적으로, 신중한 답변 스타일",
               style: TextStyle(fontSize:12, color: isSelectedEmpathy ? AppColors.DarkBlue: Colors.grey),)
           ],
         ),
@@ -118,7 +118,7 @@ class _FeedbackTypeState extends State<FeedbackType> {
               ),
             ),
             SizedBox(width: 5,),
-            Text("더 창의적&역동적으로, \n자신감 있는 답변 스타일" ,
+            Text("창의적이고 역동적인 답변 스타일" ,
               style: TextStyle(fontSize:12, color: isSelectedSolution ? AppColors.DarkBlue: Colors.grey),)
           ],
         ),

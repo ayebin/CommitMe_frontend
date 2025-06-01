@@ -175,26 +175,29 @@ class InterviewRoleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: ElevatedButton(
-        onPressed: () => onTap(roleKey),
-        style: ElevatedButton.styleFrom(
-          minimumSize: Size(250, 37),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: isSelected ? Colors.transparent : AppColors.backBlue,
-              width: 1,
+      padding: const EdgeInsets.only(right: 1),
+      child: SizedBox(
+        width: 450, // 원하는 너비로 설정
+        child: ElevatedButton(
+          onPressed: () => onTap(roleKey),
+          style: ElevatedButton.styleFrom(
+            minimumSize: Size(250, 37),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: isSelected ? Colors.transparent : AppColors.backBlue,
+                width: 1,
+              ),
             ),
+            backgroundColor: isSelected ? AppColors.DarkBlue : Colors.white,
           ),
-          backgroundColor: isSelected ? AppColors.DarkBlue : Colors.white,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 14,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              fontSize: 14,
+            ),
           ),
         ),
       ),
