@@ -1,8 +1,10 @@
 // upload_resume.dart
+import 'package:commit_me/infoProvider.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:commit_me/design/color_system.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
 
 Future<void> showUploadDialog(BuildContext context) async {
   return showDialog(
@@ -43,7 +45,7 @@ Future<void> showUploadDialog(BuildContext context) async {
                     children: [
                       Icon(Icons.picture_as_pdf, size: 48, color: Colors.grey),
                       SizedBox(height: 12),
-                      Text("여기에 파일을 드래그하세요.\n(파일 형식: PDF)",
+                      Text("여기에 파일을 드래그하세요.\n(파일 형식: pdf, docx, jpg, png)",
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16, color: Colors.black87),
                       ),
@@ -52,12 +54,15 @@ Future<void> showUploadDialog(BuildContext context) async {
                         onPressed: () async {
                           FilePickerResult? result = await FilePicker.platform.pickFiles(
                             type: FileType.custom,
-                            allowedExtensions: ['pdf'],
+                            allowedExtensions: ['pdf', 'docx', 'jpg', 'png'],
+                            withData: true,
                           );
 
-                          if (result != null) {
-                            File file = File(result.files.single.path!);
-                            // TODO: 파일 업로드 처리
+                          if (result != null && result.files.isNotEmpty) {
+                            final file = result.files.first;
+                            print('✅ 파일 이름: ${file.name}');
+                            print('✅ 파일 바이트 길이: ${file.bytes?.length}');
+                            Provider.of<InfoProvider>(context, listen: false).setUploadedFile(file);
                             Navigator.of(context).pop(); // 팝업 닫기
                           }
                         },
