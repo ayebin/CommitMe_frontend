@@ -6,6 +6,7 @@ import 'package:commit_me/page/nevigation_menu.dart';
 import 'package:commit_me/page/info.dart';
 import 'package:provider/provider.dart';
 import 'package:commit_me/userProvider.dart';
+import 'package:commit_me/infoProvider.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -26,7 +27,12 @@ class _HomePageState extends State<HomePage> {
 
       if (result.statusCode == 201) {
         final int userId = jsonDecode(result.body)['user_id'];
+
+        // userId 설정
         Provider.of<UserProvider>(context, listen: false).setUserId(userId);
+
+        // ✅ InfoProvider 초기화 (이력서 등 상태 리셋)
+        Provider.of<InfoProvider>(context, listen: false).clear();
       } else {
         print('user 생성 실패: ${result.body}');
       }
